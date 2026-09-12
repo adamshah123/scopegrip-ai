@@ -1,0 +1,6 @@
+const required=['NEXT_PUBLIC_SUPABASE_URL','NEXT_PUBLIC_SUPABASE_ANON_KEY','SUPABASE_SERVICE_ROLE_KEY','APP_URL','GOOGLE_CLIENT_ID','GOOGLE_CLIENT_SECRET','TOKEN_ENCRYPTION_KEY','OPENAI_API_KEY','STRIPE_SECRET_KEY','STRIPE_WEBHOOK_SECRET','STRIPE_PRICE_ID'];
+const problems=required.filter(k=>!process.env[k]).map(k=>`${k} is missing`);
+for(const key of ['APP_URL','NEXT_PUBLIC_SUPABASE_URL'])if(process.env[key]){try{const u=new URL(process.env[key]);if(!['http:','https:'].includes(u.protocol))throw new Error();if(u.pathname!=='/'||u.search||u.hash||u.username||u.password)problems.push(`${key} must be an origin without a path or credentials`);if(process.env.NODE_ENV==='production'&&u.protocol!=='https:')problems.push(`${key} must use HTTPS in production`);}catch{problems.push(`${key} must be a valid URL`);}}
+if(process.env.TOKEN_ENCRYPTION_KEY&&Buffer.from(process.env.TOKEN_ENCRYPTION_KEY,'base64').length!==32)problems.push('TOKEN_ENCRYPTION_KEY must encode 32 bytes');
+if(process.env.STRIPE_PRICE_ID&&!process.env.STRIPE_PRICE_ID.startsWith('price_'))problems.push('STRIPE_PRICE_ID must be a Stripe price ID');
+if(problems.length){console.error('Configuration needs attention:\n'+problems.map(p=>`- ${p}`).join('\n'));process.exitCode=1;}else{console.log('Environment format checks passed. Provider connectivity must still be verified.');}
